@@ -1,7 +1,7 @@
 #pgzero
 import random
 
-""" > [M6.L1] · Actividad #4: "Relanzamiento de naves enemigas"
+""" > [M6.L1] · Actividad #5: "Colisiones"
 
 Kenney assets:
 
@@ -11,12 +11,12 @@ Planetas: https://kenney.nl/assets/planets
 UI: https://kenney.nl/assets/ui-pack-sci-fi
 
 
-Objetivo: "Reciclar"/Reemplazar naves enemigas que se salgan de la pantalla de juego
-Prox. Actividad: Implementar colisiones
+Objetivo: Implementar colisiones
+Prox. Actividad: Implementar GAME OVER
 
-Paso Nº 1: Convertir el bucle FOR de spawn a una función
-Paso Nº 2: Agregar antes de la primer ejecución de mi update() un bucle for para spawnear a los primeros enemigos
-Paso Nº 3: Modificar mi fn mov_flota_enemiga() para que las naves que salgan de la pantalla sean recicladas o reemplazadas
+Paso Nº 1: Agregamos una fn llamada comprobar_colisiones()
+Paso Nº 2: Agregamos una llamada a comprobar_colisiones() en nuestro update()
+Paso Nº 3: Modificamos spawn_nvo_enemigo() para que las naves enemigas NO se superpongan
 
     ##################
    # VENTANA PGZERO #
@@ -47,18 +47,30 @@ def spawn_nvo_enemigo(tipo=""):
     # Determinar tipo de enemigo a añadir:
     if tipo == "":
         tipo = "enemy"
+
+    pos_valida = False
+
+    while (not pos_valida):
     
+        # Setear coordenadas random (importamos la librería)
+        x = random.randint(50, WIDTH-50)
+        y = random.randint(-200, -50)
+
+        # Creamos un nvo_enemigo según su tipo:
+        nvo_enemigo = Actor(tipo, (x, y))
     
-    # Setear coordenadas random (importamos la librería)
-    x = random.randint(50, WIDTH-50)
-    y = random.randint(-200, -50)
-    
-    # To-do: permitir que haya más de un tipo de enemigo
-    # To-do: chequear que no se superpongan los enemigos entre sí
-    # -> enemigo.collidelist(lista_enemigos) == -1
-    
-    # Creamos un nvo_enemigo según su tipo:
-    nvo_enemigo = Actor(tipo, (x, y))
+        # Verificamos que nuestro nvo_enemigo NO se superponga con otro
+        # Nota: más adelante veremos collidelist que sería una mejor solución a este caso
+        pos_valida = True # Defino como "válida" la posición, hasta que encuentre lo contrario
+      
+        for nave_enemiga in lista_enemigos:
+            # recorro la lista de enemigos y chequeo las colisiones
+            if  nvo_enemigo.colliderect(nave_enemiga):
+                pos_valida = False
+
+        # Si el for termina y la posición NO es válida, vá a repetirse el while
+
+    # Cuando ya validé la posición de mi nvo_enemigo, configuro lo demás
     
     """ Nota: Si yo quiero que la velocidad de los enemigos sea un factor
               de la dificultad del juego, en lugar de ser random p/cada
@@ -73,7 +85,15 @@ def spawn_nvo_enemigo(tipo=""):
     nvo_enemigo.velocidad = random.randint(4, 8) # o variable global
     # Cuando mi nuevo enemigo está listo, lo agrego a la lista:
     lista_enemigos.append(nvo_enemigo)
+    #####################################################################
 
+def comprobar_colisiones():
+    # Comprobar colisiones con enemigos
+    for nave_enemiga in lista_enemigos:
+        if nave.colliderect(nave_enemiga):
+            # Hubo colisión :(
+            exit() # cerramos el juego
+            # To-do: modificar por game_over
 
 def mov_flota_enemiga():
     for nave_enemiga in lista_enemigos:
@@ -114,3 +134,4 @@ def on_mouse_move(pos):
 
 def update(dt):
     mov_flota_enemiga()
+    comprobar_colisiones()
