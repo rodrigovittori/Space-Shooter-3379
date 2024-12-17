@@ -1,7 +1,7 @@
 #pgzero
 import random
 
-""" > [M6.L1] · Actividad #5: "Colisiones"
+""" > [M6.L1] · Actividad #6: "Se acabó el juego"
 
 Kenney assets:
 
@@ -11,12 +11,13 @@ Planetas: https://kenney.nl/assets/planets
 UI: https://kenney.nl/assets/ui-pack-sci-fi
 
 
-Objetivo: Implementar colisiones
-Prox. Actividad: Implementar GAME OVER
+Objetivo: Implementar "GAME OVER"
+Prox. Actividad: Planetas (Extra) y Meteoritos (Homework)
 
-Paso Nº 1: Agregamos una fn llamada comprobar_colisiones()
-Paso Nº 2: Agregamos una llamada a comprobar_colisiones() en nuestro update()
-Paso Nº 3: Modificamos spawn_nvo_enemigo() para que las naves enemigas NO se superpongan
+Paso Nº 1: Agregar una variable global llamada "modo_actual" que controla el estado de nuestro Juego
+Paso Nº 2: Modificar nuestra fn comprobar_colisiones() para que en vez de cerrar nuestro juego cambie el estado actual a "game_over"
+Paso Nº 3: Modificar nuestras funciones draw(), on_mouse_move() y update() para que contemplen la nueva lógica de estados
+    NOTA: Agregamos en update() un check para volver a modo "juego"
 
     ##################
    # VENTANA PGZERO #
@@ -30,6 +31,7 @@ FPS = 30
 
 # Objetos y Variables
 CANT_ENEMIGOS = 5 # Cantidad de enemigos a spawnear
+modo_actual = "juego" # Valores posibles: "juego" / "game_over"
 
 nave = Actor("ship", (300,300))
 fondo = Actor("space")
@@ -88,12 +90,12 @@ def spawn_nvo_enemigo(tipo=""):
     #####################################################################
 
 def comprobar_colisiones():
+    global modo_actual
     # Comprobar colisiones con enemigos
     for nave_enemiga in lista_enemigos:
         if nave.colliderect(nave_enemiga):
             # Hubo colisión :(
-            exit() # cerramos el juego
-            # To-do: modificar por game_over
+            modo_actual = "game_over" # Terminamos la partida
 
 def mov_flota_enemiga():
     for nave_enemiga in lista_enemigos:
@@ -118,20 +120,39 @@ for enemigo in range(CANT_ENEMIGOS):
    #####################  """
 
 def draw():
-    fondo.draw()
+    if (modo_actual == "juego"):
+        fondo.draw()
+    
+        for nave_enemiga in lista_enemigos:
+            nave_enemiga.draw()
+        
+        texto_temp = "Coord: (x: " + str(int(nave.x)) + ", y: " + str(int(nave.y)) + ")"
+        screen.draw.text(texto_temp, midleft=(20, 20), color = "white", fontsize = 24)
+        
+        #screen.draw.text(TITLE, center=(300, 100), color="white", background="black")
+        nave.draw()
 
-    for nave_enemiga in lista_enemigos:
-        nave_enemiga.draw()
-    
-    texto_temp = "Coord: (x: " + str(int(nave.x)) + ", y: " + str(int(nave.y)) + ")"
-    screen.draw.text(texto_temp, midleft=(20, 20), color = "white", fontsize = 24)
-    
-    #screen.draw.text(TITLE, center=(300, 100), color="white", background="black")
-    nave.draw()
+    elif (modo_actual == "game_over"):
+        fondo.draw()
+
+        screen.draw.text("¡TE ESTRELLASTE!", center=(int(WIDTH/2), int(HEIGHT/2)), color = "red", background = "black", fontsize = 48)
+
+        # To-do: agregar mostrar puntuación final
+        # To-do: Mostrar cartel "Presione [Enter] para reiniciar"
+        #        -> To-Do: agregar función reset_game()
+        
     
 def on_mouse_move(pos):
   nave.pos = pos
 
 def update(dt):
-    mov_flota_enemiga()
-    comprobar_colisiones()
+    global modo_actual
+
+    if (modo_actual == "juego"):
+        mov_flota_enemiga()
+        comprobar_colisiones()
+
+    elif (modo_actual == "game_over"):
+        if (keyboard.enter):
+            modo_actual = "juego"
+            # To-Do: agregar función reset_game()
