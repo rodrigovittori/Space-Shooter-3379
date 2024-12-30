@@ -1,7 +1,7 @@
 #pgzero
 import random
 
-""" > [M6.L1] · Actividad #8: "Planetas (Asignación extra)"
+""" > [M6.L1] · Actividad #9: "Meteoritos (Homework / Tarea pa' la casa)"
 
 Kenney assets:
 
@@ -11,14 +11,25 @@ Planetas: https://kenney.nl/assets/planets
 UI: https://kenney.nl/assets/ui-pack-sci-fi
 
 
-Objetivo: Objetivo: Agregar planetas como elemento decorativo
-Prox. Actividad: Meteoritos (Homework)
+Objetivo: Agregar meteoritos e implementar la lógica necesaria 
+Prox. Actividad: [PROXIMA CLASE]
 
-Paso Nº 1: Crear una lista donde almacenar los planetas
-Paso Nº 2: Crear los actores con las imágenes de los planetas y agregarlos a su lista
-Paso Nº 3: Crear una función que se encargue de actualizar su posición y reciclarlos una vez hayan salido de la ventana de juego
-Paso Nº 4: Actualizar nuestro draw() para que muestre los planetas en pantalla
-Paso Nº 5: Actualizar nuestro update() para que llame a mov_planetas()
+> Nota: Este ejercicio el profe lo resuelve un poquito distinto a lo planteado por Kodland
+
+> Nota 2: deshabilitamos las partes del código de los planetas porque la HW
+          NO tiene cargados los assets de los planetas
+
+> Nota 3: Reorganizamos código
+
+Paso Nº 1) Como Kodland NO tiene cargado por defecto las imágenes de los planetas, comentamos toda referencia a ello (por este ejercicio)
+           > creacion y lista de planetas + llama a mov_planetas() en nuestro update()
+Paso Nº 2) Creamos una lista de meteoros, y una constante que almacene la cantidad de meteoritos en pantalla
+Paso Nº 3) Creamos una función que se encargue de spawnear meteoros (recordar modificar el check de colisiones en el spawn de naves enemigas)
+Paso Nº 4) Creamos una función que se encargue de su movimiento
+Paso Nº 5) Modificar nuestro control de colisiones
+Paso Nº 6) Modificamos nuestro draw() para que dibuje por pantalla los meteoritos
+Paso Nº 7) Agregamos un bucle for que spawnee los meteoros al iniciar la partida
+Paso Nº 8) Agregamos una llamada a mover_meteoritos() en nuestro update()
 
 
     ##################
@@ -33,6 +44,7 @@ FPS = 30
 
 # Objetos y Variables
 CANT_ENEMIGOS = 5 # Cantidad de enemigos a spawnear
+CANT_METEOROS = 4 # Cantidad de meteoros a spawnear
 modo_actual = "juego" # Valores posibles: "juego" / "game_over"
 
 nave = Actor("ship", (300,300))
@@ -41,7 +53,11 @@ fondo = Actor("space")
 # Listas
 lista_enemigos = []
 lista_planetas = []
+lista_meteoritos = []
 
+""" ****************************** [ PLANETAS ] ****************************** """
+
+"""
 lista_planetas = []
 
 # Creamos los planetas
@@ -56,12 +72,15 @@ lista_planetas.append(planeta_2)
 planeta_3 = Actor("plan3", (random.randint(0, WIDTH), random.randint(-1200, -850)))
 planeta_3.angle = random.randint(0,359)
 lista_planetas.append(planeta_3)
+"""
 
 ################################
 
 """  #####################
     # FUNCIONES PROPIAS #
    #####################  """
+
+""" ****************************** [ ENEMIGOS ] ****************************** """
 
 def spawn_nvo_enemigo(tipo=""):
     # Determinar tipo de enemigo a añadir:
@@ -87,6 +106,11 @@ def spawn_nvo_enemigo(tipo=""):
             # recorro la lista de enemigos y chequeo las colisiones
             if  nvo_enemigo.colliderect(nave_enemiga):
                 pos_valida = False
+        
+        for meteorito in lista_meteoritos:
+          # recorro la lista de meteoritos y chequeo las colisiones
+          if  nvo_enemigo.colliderect(meteorito):
+              pos_valida = False
 
         # Si el for termina y la posición NO es válida, vá a repetirse el while
 
@@ -105,7 +129,65 @@ def spawn_nvo_enemigo(tipo=""):
     nvo_enemigo.velocidad = random.randint(4, 8) # o variable global
     # Cuando mi nuevo enemigo está listo, lo agrego a la lista:
     lista_enemigos.append(nvo_enemigo)
+    
     #####################################################################
+
+""" ****************************** [ METEORITOS ] ****************************** """
+
+def spawn_nvo_meteorito(tipo=""):
+
+  # Determinar tipo de meteorito a añadir:
+  if tipo == "":
+      tipo = "meteor"
+
+  # To-do: permitir que haya más de un tipo de meteorito
+  pos_valida = False
+
+  while (not pos_valida):
+      # Setear coordenadas random (importamos la librería)
+      x = random.randint(50, WIDTH-50)
+      y = random.randint(-200, -50)
+
+      # Crear nvo_enemigo según el tipo:
+      nvo_meteorito = Actor(tipo, (x, y))
+
+      # Verificamos que nuestro nvo_meteorito NO se superponga con otro
+
+      #Nota: más adelante veremos collidelist que sería una mejor solución a este caso
+      pos_valida = True # Defino como "válida" la posición, hasta que encuentre lo contrario
+
+      for nave_enemiga in lista_enemigos:
+          # recorro la lista de enemigos y chequeo las colisiones
+          if  nvo_meteorito.colliderect(nave_enemiga):
+              pos_valida = False
+
+      for meteorito in lista_meteoritos:
+          # recorro la lista de meteoritos y chequeo las colisiones
+          if  nvo_meteorito.colliderect(meteorito):
+              pos_valida = False
+
+  # Cuando ya validé la posición de mi nvo_metorito, configuro lo demás
+  """ Nota: ver nota en spawn_nvo_enemigo  """
+
+  nvo_meteorito.velocidad = random.randint(5, 10) # o variable global
+  # Cuando mi nuevo meteorito está listo, lo agrego a la lista:
+  lista_meteoritos.append(nvo_meteorito)
+  ##########################################
+
+def mov_meteoritos():
+
+  for meteorito in lista_meteoritos:
+      if (meteorito.y > (HEIGHT + meteorito.height)): # Si se salió de la pantalla
+            # Lo reciclamos:
+            meteorito.y = random.randint(-200, -50)
+            meteorito.x = random.randint(50, WIDTH - 50)
+            # Nota: si cambiamos la velocidad según la dificultad, modificar ésto:
+            meteorito.velocidad = random.randint(5, 10) # o variable global
+
+      else:
+            meteorito.y += meteorito.velocidad
+
+""" ****************************** [ COLISIONES ] ****************************** """
 
 def comprobar_colisiones():
     global modo_actual
@@ -137,10 +219,17 @@ def mov_planetas(delta_y):
           planeta_actual.x = random.randint(0, WIDTH)
           planeta_actual.y = random.randint(-1200, -850)
           planeta_actual.angle = random.randint(0,359)
+          
+  for meteorito in lista_meteoritos:
+        if nave.colliderect(meteorito):
+            modo_actual = "game_over" # Terminamos el juego
 
 # To-do: convertir a funcion Inicializar/Reiniciar Juego
 for enemigo in range(CANT_ENEMIGOS):
     spawn_nvo_enemigo()
+    
+for meteoro in range(CANT_METEOROS):
+  spawn_nvo_meteorito()
 
 
 """  #####################
@@ -153,6 +242,10 @@ def draw():
         
         for planeta in lista_planetas:
           planeta.draw()
+         
+        
+        for meteorito in lista_meteoritos:
+            meteorito.draw()
         
         for nave_enemiga in lista_enemigos:
             nave_enemiga.draw()
@@ -184,6 +277,7 @@ def update(dt):
 
     if (modo_actual == "juego"):
         mov_planetas(1) # Nota: si modifico el juego para que tenga velocidad variable, asegurarme de actualizar el delta_y
+        mov_meteoritos()
         mov_flota_enemiga()
         comprobar_colisiones()
 
