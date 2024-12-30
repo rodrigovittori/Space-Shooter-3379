@@ -1,7 +1,7 @@
 #pgzero
 import random
 
-""" > [M6.L1] · Actividad #6: "Se acabó el juego"
+""" > [M6.L1] · Actividad #8: "Planetas (Asignación extra)"
 
 Kenney assets:
 
@@ -11,13 +11,15 @@ Planetas: https://kenney.nl/assets/planets
 UI: https://kenney.nl/assets/ui-pack-sci-fi
 
 
-Objetivo: Implementar "GAME OVER"
-Prox. Actividad: Planetas (Extra) y Meteoritos (Homework)
+Objetivo: Objetivo: Agregar planetas como elemento decorativo
+Prox. Actividad: Meteoritos (Homework)
 
-Paso Nº 1: Agregar una variable global llamada "modo_actual" que controla el estado de nuestro Juego
-Paso Nº 2: Modificar nuestra fn comprobar_colisiones() para que en vez de cerrar nuestro juego cambie el estado actual a "game_over"
-Paso Nº 3: Modificar nuestras funciones draw(), on_mouse_move() y update() para que contemplen la nueva lógica de estados
-    NOTA: Agregamos en update() un check para volver a modo "juego"
+Paso Nº 1: Crear una lista donde almacenar los planetas
+Paso Nº 2: Crear los actores con las imágenes de los planetas y agregarlos a su lista
+Paso Nº 3: Crear una función que se encargue de actualizar su posición y reciclarlos una vez hayan salido de la ventana de juego
+Paso Nº 4: Actualizar nuestro draw() para que muestre los planetas en pantalla
+Paso Nº 5: Actualizar nuestro update() para que llame a mov_planetas()
+
 
     ##################
    # VENTANA PGZERO #
@@ -38,6 +40,22 @@ fondo = Actor("space")
 
 # Listas
 lista_enemigos = []
+lista_planetas = []
+
+lista_planetas = []
+
+# Creamos los planetas
+planeta_1 = Actor("plan1", (random.randint(0, WIDTH), random.randint(-400, -50)))
+planeta_1.angle = random.randint(0,359)
+lista_planetas.append(planeta_1)
+
+planeta_2 = Actor("plan2", (random.randint(0, WIDTH), random.randint(-800, -450)))
+planeta_2.angle = random.randint(0,359)
+lista_planetas.append(planeta_2)
+
+planeta_3 = Actor("plan3", (random.randint(0, WIDTH), random.randint(-1200, -850)))
+planeta_3.angle = random.randint(0,359)
+lista_planetas.append(planeta_3)
 
 ################################
 
@@ -109,6 +127,16 @@ def mov_flota_enemiga():
 
         else:
             nave_enemiga.y += nave_enemiga.velocidad
+            
+def mov_planetas(delta_y):
+  for planeta_actual in lista_planetas:
+      planeta_actual.y += delta_y
+
+      # Si se sale de la pantalla de juego, lo reciclamos
+      if (planeta_actual.y > (HEIGHT + planeta_actual.height)):
+          planeta_actual.x = random.randint(0, WIDTH)
+          planeta_actual.y = random.randint(-1200, -850)
+          planeta_actual.angle = random.randint(0,359)
 
 # To-do: convertir a funcion Inicializar/Reiniciar Juego
 for enemigo in range(CANT_ENEMIGOS):
@@ -122,7 +150,10 @@ for enemigo in range(CANT_ENEMIGOS):
 def draw():
     if (modo_actual == "juego"):
         fondo.draw()
-    
+        
+        for planeta in lista_planetas:
+          planeta.draw()
+        
         for nave_enemiga in lista_enemigos:
             nave_enemiga.draw()
         
@@ -134,6 +165,9 @@ def draw():
 
     elif (modo_actual == "game_over"):
         fondo.draw()
+        
+        for planeta in lista_planetas:
+          planeta.draw()
 
         screen.draw.text("¡TE ESTRELLASTE!", center=(int(WIDTH/2), int(HEIGHT/2)), color = "red", background = "black", fontsize = 48)
 
@@ -149,6 +183,7 @@ def update(dt):
     global modo_actual
 
     if (modo_actual == "juego"):
+        mov_planetas(1) # Nota: si modifico el juego para que tenga velocidad variable, asegurarme de actualizar el delta_y
         mov_flota_enemiga()
         comprobar_colisiones()
 
